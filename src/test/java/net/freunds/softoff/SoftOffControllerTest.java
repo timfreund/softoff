@@ -2,15 +2,17 @@ package net.freunds.softoff;
 
 import static org.junit.Assert.*;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class SoftOffControllerTest {
 	private SoftOffController controller = null;
-	
-	public SoftOffControllerTest(){
+
+	@Before
+	public void setUp() throws Exception {
 		controller = new SoftOffController();
 	}
-	
+
 	@Test
 	public void testAddTestStringString() {
 		try {
