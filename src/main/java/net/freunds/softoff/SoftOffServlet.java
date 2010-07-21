@@ -1,6 +1,7 @@
 package net.freunds.softoff;
 
 import java.io.IOException;
+import java.util.Enumeration;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -13,7 +14,6 @@ public class SoftOffServlet extends HttpServlet {
 	
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
 		if(controller.available()){
 			response.setStatus(200);
 			response.getOutputStream().print("OK");
@@ -28,20 +28,38 @@ public class SoftOffServlet extends HttpServlet {
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 
-		String rawtests = config.getInitParameter("tests");
-		String[] tests = rawtests.split(",");
-		for(String test : tests){
-			String[] tokens = test.split(":");
-			String className = tokens[0];
-			String methodName = tokens[1];
-			try {
-				controller.addTest(className, methodName);
-			} catch (Exception e) {
-				throw new ServletException("Error configuring SoftOff controller", e);
+		controller.setInstanceName(config.getServletContext().getServletContextName());
+		controller.initialize();
+		
+		Enumeration names = config.getInitParameterNames();
+		String name = null;
+		while(names.hasMoreElements()){
+			name = (String)names.nextElement();
+			if(name.startsWith("test_")){
+				String testName = config.getInitParameter(name);
+				addTest(testName);
 			}
 		}
 	}
 
+	@Override
+	public void destroy() {
+		super.destroy();
+		controller.shutdown();
+	}
+
+	public void addTest(String fullyQualifiedTestName) throws ServletException {
+		String[] tokens = fullyQualifiedTestName.split(":");
+		String className = tokens[0];
+		String methodName = tokens[1];
+		try {
+			controller.addTest(className, methodName);
+		} catch (Exception e) {
+			throw new ServletException("Error configuring SoftOff controller", e);
+		}
+		
+	}
+	
 	public SoftOffController getController() {
 		return controller;
 	}
